@@ -225,9 +225,9 @@ static void MIDMenuMain(MIDContext_t *context)
     };
     IBusCommandMIDMenuWriteMany(context->ibus, 0x61, mainMenuText, sizeof(mainMenuText));
     if (context->bt->playbackStatus == BT_AVRCP_STATUS_PLAYING) {
-        IBusCommandMIDMenuWriteSingle(context->ibus, MID_BUTTON_PLAYBACK, ">  ");
+        IBusCommandMIDMenuWriteSingle(context->ibus, MID_BUTTON_PLAYBACK, "||  ");
     } else {
-        IBusCommandMIDMenuWriteSingle(context->ibus, MID_BUTTON_PLAYBACK, "|| ");
+        IBusCommandMIDMenuWriteSingle(context->ibus, MID_BUTTON_PLAYBACK, "> ");
     }
     IBusCommandMIDMenuWriteSingle(context->ibus, MID_BUTTON_PAIR, "Pair");
     IBusCommandMIDMenuWriteSingle(context->ibus, MID_BUTTON_MODE, "MODE");
@@ -284,31 +284,15 @@ void MIDBTMetadataUpdate(void *ctx, unsigned char *tmp)
         strlen(context->bt->title) > 0 &&
         ConfigGetSetting(CONFIG_SETTING_METADATA_MODE) != MID_SETTING_METADATA_MODE_OFF
     ) {
+        context->mainText[0] = '\0';
         char text[UTILS_DISPLAY_TEXT_SIZE] = {0};
-        if (strlen(context->bt->artist) > 0 && strlen(context->bt->album) > 0) {
-            snprintf(
-                text,
-                UTILS_DISPLAY_TEXT_SIZE,
-                "%s - %s on %s",
-                context->bt->title,
-                context->bt->artist,
-                context->bt->album
-            );
-        } else if (strlen(context->bt->artist) > 0) {
+        if (strlen(context->bt->artist) > 0) {
             snprintf(
                 text,
                 UTILS_DISPLAY_TEXT_SIZE,
                 "%s - %s",
-                context->bt->title,
-                context->bt->artist
-            );
-        } else if (strlen(context->bt->album) > 0) {
-            snprintf(
-                text,
-                UTILS_DISPLAY_TEXT_SIZE ,
-                "%s on %s",
-                context->bt->title,
-                context->bt->album
+                context->bt->artist,
+                context->bt->title
             );
         } else {
             snprintf(text, UTILS_DISPLAY_TEXT_SIZE, "%s", context->bt->title);
@@ -317,6 +301,7 @@ void MIDBTMetadataUpdate(void *ctx, unsigned char *tmp)
         TimerTriggerScheduledTask(context->displayUpdateTaskId);
     }
 }
+
 
 void MIDBTPlaybackStatus(void *ctx, unsigned char *tmp)
 {

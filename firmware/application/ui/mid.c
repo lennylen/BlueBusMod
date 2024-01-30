@@ -225,9 +225,9 @@ static void MIDMenuMain(MIDContext_t *context)
     };
     IBusCommandMIDMenuWriteMany(context->ibus, 0x61, mainMenuText, sizeof(mainMenuText));
     if (context->bt->playbackStatus == BT_AVRCP_STATUS_PLAYING) {
-        IBusCommandMIDMenuWriteSingle(context->ibus, MID_BUTTON_PLAYBACK, "||  ");
+        IBusCommandMIDMenuWriteSingle(context->ibus, MID_BUTTON_PLAYBACK, "|| ");
     } else {
-        IBusCommandMIDMenuWriteSingle(context->ibus, MID_BUTTON_PLAYBACK, "> ");
+        IBusCommandMIDMenuWriteSingle(context->ibus, MID_BUTTON_PLAYBACK, ">  ");
     }
     IBusCommandMIDMenuWriteSingle(context->ibus, MID_BUTTON_PAIR, "Pair");
     IBusCommandMIDMenuWriteSingle(context->ibus, MID_BUTTON_MODE, "MODE");
@@ -284,9 +284,8 @@ void MIDBTMetadataUpdate(void *ctx, unsigned char *tmp)
         strlen(context->bt->title) > 0 &&
         ConfigGetSetting(CONFIG_SETTING_METADATA_MODE) != MID_SETTING_METADATA_MODE_OFF
     ) {
-        context->mainText[0] = '\0';
         char text[UTILS_DISPLAY_TEXT_SIZE] = {0};
-        if (strlen(context->bt->artist) > 0) {
+        if (strlen(context->bt->artist) > 0 && strlen(context->bt->title) > 0) {
             snprintf(
                 text,
                 UTILS_DISPLAY_TEXT_SIZE,
@@ -297,7 +296,8 @@ void MIDBTMetadataUpdate(void *ctx, unsigned char *tmp)
         } else {
             snprintf(text, UTILS_DISPLAY_TEXT_SIZE, "%s", context->bt->title);
         }
-        MIDSetMainDisplayText(context, text, 3000 / MID_DISPLAY_SCROLL_SPEED);
+        strncpy(context->mainText, "", 1);
+        MIDSetMainDisplayText(context, text, 3000 / MID_DISPLAY_SCROLL_SPEED); 
         TimerTriggerScheduledTask(context->displayUpdateTaskId);
     }
 }
@@ -308,13 +308,13 @@ void MIDBTPlaybackStatus(void *ctx, unsigned char *tmp)
     MIDContext_t *context = (MIDContext_t *) ctx;
     if (context->mode == MID_MODE_ACTIVE) {
         if (context->bt->playbackStatus == BT_AVRCP_STATUS_PLAYING) {
-            IBusCommandMIDMenuWriteSingle(context->ibus, 0, " >");
+           IBusCommandMIDMenuWriteSingle(context->ibus, 0, "|| ");
             BTCommandGetMetadata(context->bt);
         } else {
             if (ConfigGetSetting(CONFIG_SETTING_METADATA_MODE) != MID_SETTING_METADATA_MODE_OFF) {
                 MIDSetMainDisplayText(context, "Paused", 0);
             }
-            IBusCommandMIDMenuWriteSingle(context->ibus, 0, "|| ");
+            IBusCommandMIDMenuWriteSingle(context->ibus, 0, " >");
         }
     }
 }
@@ -362,10 +362,10 @@ void MIDIBusMIDButtonPress(void *ctx, unsigned char *pkt)
         if (btnPressed == MID_BUTTON_PLAYBACK) {
             if (context->bt->playbackStatus == BT_AVRCP_STATUS_PLAYING) {
                 BTCommandPause(context->bt);
-                IBusCommandMIDMenuWriteSingle(context->ibus, 0, "|| ");
+                IBusCommandMIDMenuWriteSingle(context->ibus, 0, ">  ");
             } else {
                 BTCommandPlay(context->bt);
-                IBusCommandMIDMenuWriteSingle(context->ibus, 0, ">  ");
+                IBusCommandMIDMenuWriteSingle(context->ibus, 0, "|| ");
             }
         } else if (btnPressed == MID_BUTTON_META) {
             if (context->mode == MID_MODE_ACTIVE) {
